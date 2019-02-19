@@ -9,7 +9,6 @@ class User(object):
     def __init__(self, *args, **kwargs):
         '''requires pin, name can resort to default'''
         self._name = kwargs.get('name', User.default())
-        self.hash = hashlib.sha256()
         self._pin = self.encrypt(kwargs.get('pin', None))
 
         if self.pin is None:
@@ -17,8 +16,8 @@ class User(object):
 
     def encrypt(self, pin):
         '''encrypts the pin to SHA256 hash'''
-        hashed = self.hash.update(bytes(pin))
-        return hashed.digest()
+        h = hashlib.sha256(bytes(pin))
+        return h.digest()
 
     def verify(self, pin):
         '''Verifies SHA256 Hash'''
@@ -36,9 +35,23 @@ class User(object):
         else:
             return False
 
-    def change_name(self, name):
+    def change_name(self, name, pin):
         '''changes name of user'''
-        self.name = name
+        if self.verify(pin):
+            self.name = name
+            return self.name
+        else:
+            return None
+
+    def change_pin(self, new_pin, old_pin):
+        '''Attempts to change pin of user
+           params: new_pin, old_pin
+           returns: True or False'''
+        if self.verify(old_pin):
+            self.pin = self.encrypt(new_pin)
+            return True
+        else:
+            return False
 
     @classmethod
     def default(cls):
