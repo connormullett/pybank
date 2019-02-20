@@ -121,9 +121,16 @@ class Account(object):
         params: user_id: int, account_type: int
         '''
         self._user_id = kwargs.get('user_id', None)
-        self._account_type = AccountTypes(kwargs.get('account_type', None))
 
+        account_type = kwargs.get('account_type', None)
         self._account_id = Account.get_account_id()
+
+        if account_type:
+            self._account_type = AccountTypes(account_type)
+        else:
+            raise ValueError('account_type cannot be None')
+        if not self.user_id:
+            raise ValueError('user_id cannot be None')
 
     @classmethod
     def get_account_id(cls):
