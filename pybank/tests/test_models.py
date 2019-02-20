@@ -63,6 +63,15 @@ class TestUser(unittest.TestCase):
         self.user = User(pin=1234, name='Connor')
         actual = self.user._encrypt(1234)
         expected = self.user.pin
-
         self.assertEqual(actual, expected)
+
+    def test_pybank_models_user_add_account_should_create_account(self):
+        self.user = User(pin=1234, name='Connor')
+        self.user.add_account(pin=1234, account_type=1)
+        self.assertTrue(self.user.account)
+
+    def test_pybank_models_user_add_account_should_return_none(self):
+        self.user = User(pin=1234, name='Connor')
+        self.assertIsNone(self.user.add_account(pin=1235, account_type=1))
+
 

@@ -31,7 +31,7 @@ class User(object):
         pin = kwargs.get('pin', None)
         account_type = kwargs.get('account_type', None)
         if self.verify(pin) and account_type is not None:
-            return Account(account_type=account_type, user_id=self.user_id)
+            self.account = Account(account_type=account_type, user_id=self.user_id)
         return None
 
     def _encrypt(self, pin):
@@ -101,6 +101,15 @@ class User(object):
         self._pin = value
 
 
+    @property
+    def account(self):
+        return self._account
+
+    @account.setter
+    def account(self, value):
+        self._account = value
+
+
 class AccountTypes(Enum):
     CHECKING = 1
     SAVING = 2
@@ -116,7 +125,8 @@ class Account(object):
         '''
         params: user_id: int, account_type: int
         '''
-        self._user_id = kwargs.get('user_id', None)
+        self.user_id = kwargs.get('user_id', None)
+        pin = kwargs.get('pin', None)
 
         account_type = kwargs.get('account_type', None)
         self._account_id = Account.get_account_id()
@@ -127,6 +137,7 @@ class Account(object):
             raise ValueError('account_type cannot be None')
         if not self.user_id:
             raise ValueError('user_id cannot be None')
+
 
     @classmethod
     def get_account_id(cls):
