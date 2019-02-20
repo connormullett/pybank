@@ -123,10 +123,12 @@ class Account(object):
 
     def __init__(self, *args, **kwargs):
         '''
-        params: user_id: int, account_type: int
+        params: user: User Object, account_type: int, pin: int
+        this object should only be created through User.add_account
         '''
-        self.user_id = kwargs.get('user_id', None)
         pin = kwargs.get('pin', None)
+
+        self.user_id = kwargs.get('user_id', None)
 
         account_type = kwargs.get('account_type', None)
         self._account_id = Account.get_account_id()
@@ -138,6 +140,8 @@ class Account(object):
         if not self.user_id:
             raise ValueError('user_id cannot be None')
 
+        self._balance = 0
+
 
     @classmethod
     def get_account_id(cls):
@@ -145,13 +149,53 @@ class Account(object):
         return Account._account_id
 
     def deposit(self, *args, **kwargs):
-        pass
+        '''
+        :params: value, pin, user
+        '''
+        value = kwargs.get('value', None)
+        user = kwargs.get('user', None)
+        pin = kwargs.get('pin', None)
+
+        if user.verify(pin):
+            self.balance += value
+            if self.balance > 0:
+                self.overdrawn = True
+                return True
+            return False
 
     def withdraw(self, *args, **kwargs):
-        pass
+        value = kwargs.get('value', None)
+        user = kwargs.get('user', None)
+        pin = kwargs.get('pin', None)
+
+        if self.overdrawn:
+            return None
+
+        if user.verify(pin):
+            self.balance -= value
+            return True
 
     def get_balance(self, *args, **kwargs):
-        pass
+        return self.balance
+
+
+    @property
+    def balance(self):
+        return self._balance
+
+    @balance.setter
+    def balance(self, value):
+        if self.balance < 0:
+            self.send_overdraw(self.balance)
+        self._balance = value
+
+    @property
+    def overdrawn(self) -> bool:
+        return self._overdrawn
+
+    @overdrawn.setter
+    def overdrawn(self, value):
+        self._overdrawn = value
 
 
 class Exceptions:
@@ -159,5 +203,6 @@ class Exceptions:
     This class may be a throw away, used for any new exceptions
     needed for this library
     '''
+    # InvalidPinError
     pass
 
