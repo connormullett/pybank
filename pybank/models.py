@@ -13,10 +13,11 @@ class User(object):
     def __init__(self, *args, **kwargs):
         '''requires pin, name can resort to default'''
         self._name = kwargs.get('name', User.default())
-        self._user_id = User.generate_id()
+        self.user_id = User.generate_id()
 
-        if len(str(kwargs.get('pin', None))) == 4:
-            self._pin = self.encrypt(kwargs.get('pin', None))
+        pin = kwargs.get('pin', None)
+        if len(str(pin)) == 4 and pin is not None:
+            self._pin = self._encrypt(kwargs.get('pin', None))
         else:
             raise ValueError('Pin must be 4 digits long')
         if self.pin is None:
@@ -33,14 +34,14 @@ class User(object):
             return Account(account_type=account_type, user_id=self.user_id)
         return None
 
-    def encrypt(self, pin):
+    def _encrypt(self, pin):
         '''encrypts the pin to SHA256 hash'''
         h = hashlib.sha256(bytes(pin))
         return h.digest()
 
     def verify(self, pin):
         '''Verifies SHA256 Hash'''
-        if self.encrypt(pin) == self.pin:
+        if self._encrypt(pin) == self.pin:
             return True
         return False
 
@@ -48,7 +49,7 @@ class User(object):
         '''attempts to login user using verify method'''
         name = kwargs.get('name', None)
         pin = kwargs.get('pin', None)
-        if self.verify(pin):
+        if self.name == name and self.verify(pin):
             return True
         else:
             return False
@@ -66,7 +67,7 @@ class User(object):
            params: new_pin, old_pin
            returns: True or False'''
         if self.verify(old_pin):
-            self.pin = self.encrypt(new_pin)
+            self.pin = self._encrypt(new_pin)
             return True
         else:
             return False
@@ -98,11 +99,6 @@ class User(object):
     @pin.setter
     def pin(self, value):
         self._pin = value
-
-    # id property, no setter
-    @property
-    def user_id(self):
-        return self._user_id
 
 
 class AccountTypes(Enum):
